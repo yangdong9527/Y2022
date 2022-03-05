@@ -369,3 +369,208 @@ export const loginActionCreator = (): ThunkAction<void, RootState, unknow, UserA
 
 ##### 4. 中间件的扩展
 
+
+
+#### redux-toolkit篇
+
+官方推荐的一款更加方便的文件
+
+安装
+
+```shell
+npm i @reduxjs-toolkit -S
+
+# 内部以来 immer redux redux-react selecter
+```
+
+
+
+##### 创建一个slice
+
+类似于一个 action 和 reducer 的结合体
+
+```ts
+import { createSlice, PayloadAction } from '@reduxjs-toolkit'
+
+interface ProductState {
+    loading: boolean
+    error: stirng | null
+    data: any
+}
+
+const initialState: ProductState = {
+    loading: true,
+    error: null,
+    data: null
+}
+
+export cont productSlice = createSlice({
+    name: 'product',
+    initialState,
+    reducers: {
+        fetchStart: (state) => {
+            state.loading = true
+        },
+        fetchSuccess: (state, action) => {
+            state.data = action.payload
+            state.loading = false
+            state.error = null
+        },
+        fetchFail: (state, action: PayloadAction<string | null>) => {
+            const error = action.payload
+            state.loading = false
+            state.error = error
+        }
+    }
+})
+```
+
+##### 创建Store
+
+```ts
+import { createStore, applyMiddleware } from 'redux'
+import { combineReducers } from '@reduxjs/toolkit'
+import { productSlice } from './product/slice'
+
+const rootReducer = combineReducers({
+    product: productSlice.reducer
+})
+
+const store = createStore(rootReducer, applyMiddleware())
+export type RootState = ReturnType<typeof store.getState>
+                                   
+export default store
+```
+
+其实这里也可以使用 `configureStore` 来创建 `store`, 但是因为其良好的兼容性, 你可以使用 `createStore` 没毛病
+
+```ts
+import { configureStore } from '@reduxjs/toolkit' 
+
+//...
+
+const store = configureStore({
+    reduce: rootReducer,
+    middleware: (getDefaultMiddleware) => [...getDefaultMiddleware, 'xx中间件'],
+    devTools: true
+})
+
+/**
+第一个参数  reducers
+第二个参数  middleware 需要注意的是 redux-toolkit 默认帮我们加载了 thunk 的中间件,所以添加新的中间件的时候记得把之前的默认中间件也添加进来
+第三个参数  devTools  传入布尔值,  可以帮我们开启一个好用的 Redux DevTools 开发工具
+
+/
+
+```
+
+
+
+ 
+
+##### 如何使用
+
+在业务代码中
+
+```tsx
+//...
+import { productSlice } form '@/store/product/slice'
+import { useSelect, useDispatch } from 'react-redux'
+
+//...
+function Example () {
+    const loading = useSelect((state: RootState) => state.product.loading)
+    const dispatch = useDispatch()
+    useEffect(() => {
+        dispatch(productSlice.action.fetchStart())
+    }, [])
+}
+
+```
+
+
+
+##### 如何处理异步请求
+
+`react-toolkit`中如何实现`redux-thunk`的操作, 可以使用`createAsyncThunk`来进行, 如果要使用 `createAsyncThunk` 就必须要用 `configureStore` 来创建store
+
+**注意 **
+
+`createAsyncThunk` 接收一个类型参数, 和一个返回Promise 的callback 函数参数,  而 `createAsyncThunk`这个函数的返回值, 其实会返回给我们 `三个类型` 分别是 `padding, fulfilled, rejected`
+
+```ts
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs-toolkit'
+
+interface ProductState {
+    loading: boolean
+    error: stirng | null
+    data: any
+}
+
+const initialState: ProductState = {
+    loading: true,
+    error: null,
+    data: null
+}
+
+// 第一字段为 命名空间+这个action的名称
+// 第二参数为一个 函数 需要返回一个Promise,  
+// thunkAPI, 包含有 redux 相关功能 比如 getState dispatch ...
+export const getProductDetail = createAsyncThunk(
+	'product/getProductDetail',
+    async (id: string, thunkAPI) => {
+        // thunkAPI.dispatch(productSlice.action.fetchStart()) 
+        // 可以使用 thunkAPI 这个写法, 也可已使用 extraReducers 这种映射来实现
+        //...
+        
+        return data
+    }
+)
+
+export cont productSlice = createSlice({
+    name: 'product',
+    initialState,
+    reducers: {
+        fetchStart: (state) => {
+            state.loading = true
+        },
+        fetchSuccess: (state, action) => {
+            state.data = action.payload
+            state.loading = false
+            state.error = null
+        },
+        fetchFail: (state, action: PayloadAction<string | null>) => {
+            const error = action.payload
+            state.loading = false
+            state.error = error
+        }
+    },
+    extraReducers: {
+        [getProductDetail.padding.type]: (state) => {
+            state.loading = true
+        },
+        [getProductDetail.fulfilled.type]: (state, action) => {
+            state.data = action.payload
+            state.loading = false
+        },
+        [getProductDetial.rejgect.type]: (state, action) => {
+            state.loading = false
+            state.error = action.payload
+        }
+    }
+})
+
+//在页面中 使用
+// xxx.tsx
+
+import { getProductDetail } from '@/store/product/slice'
+
+useEffect(() => {
+    dispatch(getProductDetail(12))
+}, [])
+
+
+```
+
+
+
