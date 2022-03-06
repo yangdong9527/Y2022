@@ -574,3 +574,174 @@ useEffect(() => {
 
 
 
+#### react-router-dom v6
+
+
+
+##### 注册路由
+
+和v5 不同的是, 去除了 `<Switch>` 添加了一个 `<Routers>`, 一级路由展位符 就是 Routers , 注册路由
+
+```js
+import React from 'react'
+
+```
+
+
+
+##### 重定向
+
+去除了 Redirect 使用 Navigator 组件, 只要这个组件被渲染, 就会自动的 跳转重定向
+
+```js
+import { Navigate } from 'react-router-dom'
+
+true ? <Navigate to="/login" replace={true} />
+```
+
+
+
+##### NavLink
+
+修改当前路由 高亮效果, 默认 会添加 active 类名 如果你想自定义
+
+```js
+<NavLink to="/home" className={({isActive}) => isActive ? 'abc' : ''} />
+```
+
+
+
+##### 路由表注入
+
+不通过 `Router 和 Route`进行注册, 而是通过 路由表的方式 注入, 使用 `useRoutes`
+
+```tsx
+// router/index.js
+export const routers = [
+    {
+        path: '/index',
+        element: <Home />
+    },
+    {
+        path: '/login',
+        element: <Login />
+    },
+    {
+        path: '/',
+        element: <Navigate to='/index' />
+    }
+]
+
+
+// App.tsx
+import { routers } from './router/index'
+import { useRoutes } from 'react-router-dom'
+function App () {
+    const element = useRoutes(routers)
+    
+    return <>{element}</>
+}
+```
+
+##### 嵌套路由
+
+通过路由表的方式注册路由后, `children` 属性注册子级路由, 然后在父级组件中 使用 `<Outlet/>`占位渲染子级组件
+
+
+
+##### params 参数获取
+
+这个和 v5 一样 你可以直接用 `useParams` 获取
+
+```js
+import { useParams, useMatch } from 'react-router-dom'
+
+const params = useParams()
+
+// 也可以通过match 获取
+const match = useMetch('/home/detial/:id/:title')
+```
+
+
+
+##### search 参数获取
+
+使用它 `useSearchParams`
+
+```js
+import { useSearchParams } from 'react-router-dom'
+
+const [search, setSearch] = useSearchParams()
+const id = search.get('id')
+const title = search.get('title')
+
+// 更新search
+const onClick = () => {
+    setSearch('id=001&title=12')
+}
+```
+
+##### 路由中的state参数
+
+```js
+// 在v5 中 state
+<Link to={{ pathname: '/home', state: {id: 1} }} />
+
+// 在 v6 中
+<Link to="/home" state={{id: 1}} />
+
+//获取
+const location = useLocation()
+console.log(location.state)
+```
+
+
+
+##### 编程式导航
+
+```js
+// v5 中
+const history = useHistory()
+
+// v6
+import { useNavigate } from 'react-router-dom'
+const navigate = useNavigate()
+
+navigate('/home', { replace: false, state: { id: 1, title: 'adf' } })
+
+// 前进 后退
+navigate(1)
+navigate(-1)
+
+```
+
+
+
+#### 其他
+
+##### 代理问题
+
+安装
+
+```shell
+npm i http-proxy-middleware -D
+```
+
+创建文件 `src/setupProxy.js`
+
+```js
+const proxy = require('http-proxy-middleware')
+
+module.exports = app => {
+    app.use(
+    	proxy('/api1', {
+            target: 'http://localhost:5000',
+            changeOrigin: true,
+            pathRewrite: {
+                '^/api1': ''
+            }
+        })
+    )
+}
+```
+
