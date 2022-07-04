@@ -131,6 +131,8 @@ export default connect((state) => state.user, {getUserInfo})(PrivateRoute)
 
 其实就是在组件内部再次使用`Switch`组件
 
+
+
 ```react
 // Layout.tsx
 
