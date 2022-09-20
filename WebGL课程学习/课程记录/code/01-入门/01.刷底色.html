@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+</body>
+<script>
+  // 刷一个底色
+  const canvas = document.getElementById('canvas')
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+  const gl = canvas.getContext('webgl')
+  gl.clearColor(1,1,0,1)
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  // css 转换成 webgl 颜色
+  function switchCssColorToWebglColor (rgbaStr) {
+    const cssRgba = rgbaStr.replace(/(.*)\((.*)\)/, '$2')
+    const keyArr = ['r', 'g', 'b', 'a']
+    return cssRgba.split(',').reduce((res, cur, index) => {
+      return {
+        ...res,
+        [keyArr[index]]: index === 3 ? +cur : +cur / 255
+      }
+    }, {})
+  }
+  const { r, g, b, a } = switchCssColorToWebglColor('rgba(255, 0, 0, 1)')
+  gl.clearColor(r, g, b, a)
+  gl.clear(gl.COLOR_BUFFER_BIT)
+
+</script>
+</html>
