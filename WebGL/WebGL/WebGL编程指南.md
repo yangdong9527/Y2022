@@ -309,7 +309,7 @@ gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0)
 
 ##### 开启 attribute 变量
 
-`gl.enableVertexArray(location)`传入一个已经分配好缓冲区的 attribute 变量后，我们开启， 这时 缓冲区对象和 attribute 变量之间链接就真正的建立起来了
+`gl.enableVertexAttribArray(location)`传入一个已经分配好缓冲区的 attribute 变量后，我们开启， 这时 缓冲区对象和 attribute 变量之间链接就真正的建立起来了
 
 ```js
 gl.enableVertexArrty(a_Position)

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+</body>
+<script id="vertexShader" type="x-shader/x-vertex">
+  attribute vec4 a_Position;
+  attribute float a_PointSize;
+  void main() {
+    gl_Position = a_Position;
+    gl_PointSize = a_PointSize;
+  }
+</script>
+<script id="fragementShader" type="x-shader/x-fragement">
+  precision mediump float;
+  uniform vec4 u_FragColor;
+  void main() {
+    float dist = distance(gl_PointCoord, vec2(0.5,0.5));
+    if(dist < 0.5) {
+      gl_FragColor = u_FragColor;
+    } else {
+      discard;
+    }
+  }
+</script>
+<script type="module">
+  const canvas = document.getElementById('canvas')
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  const vsSource = document.getElementById('vertexShader').innerText
+  const fsSource = document.getElementById('fragementShader').innerText
+
+  // 获取三维画笔
+  const gl = canvas.getContext('webgl')
+
+  // 初始化着色器 程序对象
+  initShader(gl, vsSource, fsSource)
+
+  // 获取attribute变量的存储位置
+  const a_Position = gl.getAttribLocation(gl.program, 'a_Position')
+  const a_PointSize = gl.getAttribLocation(gl.program, 'a_PointSize')
+  // 获取uniform变量位置
+  const u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
+
+  const points = []
+
+  gl.clearColor(0,0,0, 1)
+  render()
+
+  canvas.addEventListener('click', ({ clientX, clientY }) => {
+    // 获取点在 canvas 中的css位置
+    const { left, top, width, height }  = canvas.getBoundingClientRect()
+    const [cssX, cssY] = [clientX - left, clientY - top]
+
+    // 获取相对于webgl坐标系原点的位置
+    const [halfWidth, halfHeight] = [width / 2, height / 2]
+    const [xBaseCenter, yBaseCenter] = [cssX  - halfWidth, cssY - halfHeight]
+    // 解决Y轴的差异
+    const yBaserCenterTop = -yBaseCenter
+    // 解决坐标基底的差异
+    const [x, y] = [xBaseCenter / halfWidth, yBaserCenterTop / halfHeight]
+    const size = Math.random() * 50 + 5
+    const rgb = { r: Math.random(), g: Math.random(), b: Math.random() }
+    points.push({x, y, size, rgb})
+    render()
+  })
+
+  function render() {
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    points.forEach(({x, y, size, rgb}) => {
+      gl.vertexAttrib2f(a_Position, x, y)
+      gl.vertexAttrib1f(a_PointSize, size)
+      const { r, g, b } = rgb
+      gl.uniform4f(u_FragColor, r, g, b, 1)
+      gl.drawArrays(gl.POINTS, 0, 1)
+    })
+  }
+
+
+
+  function initShader(gl, vsSource, fsSource) {
+    // 创建程序对象
+    const program = gl.createProgram()
+    // 初始化主色器
+    const vertexShader = loaderShader(gl, gl.VERTEX_SHADER, vsSource)
+    const fragementShader = loaderShader(gl, gl.FRAGMENT_SHADER, fsSource)
+    // 将着色器绑定到程序对象上
+    gl.attachShader(program, vertexShader)
+    gl.attachShader(program, fragementShader)
+    // 将上下文对象和程序对象连接上
+    gl.linkProgram(program)
+    // 启用程序对象
+    gl.useProgram(program)
+
+    gl.program = program
+    return true
+  }
+  function loaderShader(gl, type, source) {
+    // 创建着色器
+    const shader = gl.createShader(type)
+    // 设置源码
+    gl.shaderSource(shader, source)
+    // 编译一下
+    gl.compileShader(shader)
+
+    return shader
+  }
+</script>
+</html>

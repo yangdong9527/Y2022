@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+</body>
+<script id="vertexShader" type="x-shader/x-vertex">
+  attribute vec4 a_Position;
+  void main() {
+    gl_Position = a_Position;
+    gl_PointSize = 10.0;
+  }
+</script>
+<script id="fragementShader" type="x-shader/x-fragement">
+  void main() {
+    gl_FragColor= vec4(1,0,0,1);
+  }
+</script>
+<script type="module">
+  const canvas = document.getElementById('canvas')
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  const vsSource = document.getElementById('vertexShader').innerText
+  const fsSource = document.getElementById('fragementShader').innerText
+
+  // 获取三维画笔
+  const gl = canvas.getContext('webgl')
+
+  // 初始化着色器 程序对象
+  initShader(gl, vsSource, fsSource)
+
+  // 绘制多个顶点
+  // 创建顶点数据
+  const vertices = new Float32Array([
+    0.0, 0.1,
+    -0.1, -0.1,
+    0.1, -0.1
+  ])
+  // 创建缓冲区对象
+  const vertexBuffer = gl.createBuffer()
+  // 将缓冲区对象 绑定到 上下问对象上
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+  // 向缓冲区中写入数据
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+  // 修改attribute的值 这次是传入多个值
+  const a_Position = gl.getAttribLocation(gl.program, 'a_Position')
+  gl.vertexAttribPointer(a_Position, 2,gl.FLOAT, false, 0, 0)
+  // 开启缓冲区变量
+  gl.enableVertexAttribArray(a_Position)
+
+  // 获取attribute变量的存储位置
+  // const a_Position = gl.getAttribLocation(gl.program, 'a_Position')
+  // // 修改attribute变量值
+  // gl.vertexAttrib3f(a_Position, 0, 0.5, 0);
+
+  gl.clearColor(0,0,0,1)
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.drawArrays(gl.POINTS, 0, 3)
+
+
+  function initShader(gl, vsSource, fsSource) {
+    // 创建程序对象
+    const program = gl.createProgram()
+    // 初始化主色器
+    const vertexShader = loaderShader(gl, gl.VERTEX_SHADER, vsSource)
+    const fragementShader = loaderShader(gl, gl.FRAGMENT_SHADER, fsSource)
+    // 将着色器绑定到程序对象上
+    gl.attachShader(program, vertexShader)
+    gl.attachShader(program, fragementShader)
+    // 将上下文对象和程序对象连接上
+    gl.linkProgram(program)
+    // 启用程序对象
+    gl.useProgram(program)
+
+    gl.program = program
+    return true
+  }
+  function loaderShader(gl, type, source) {
+    // 创建着色器
+    const shader = gl.createShader(type)
+    // 设置源码
+    gl.shaderSource(shader, source)
+    // 编译一下
+    gl.compileShader(shader)
+
+    return shader
+  }
+</script>
+</html>
