@@ -23,7 +23,6 @@
   attribute vec4 a_Position;
   void main() {
     gl_Position = a_Position;
-    gl_PointSize = 10.0;
   }
 </script>
 <script id="fragementShader" type="x-shader/x-fragement">
@@ -48,9 +47,10 @@
   // 绘制多个顶点
   // 创建顶点数据
   const vertices = new Float32Array([
-    0.0, 0.1,
-    -0.1, -0.1,
-    0.1, -0.1
+    -0.2, 0.2,
+    -0.2, -0.2,
+    0.2, 0.2,
+    0.2, -0.2
   ])
   // 创建缓冲区对象
   const vertexBuffer = gl.createBuffer()
@@ -71,7 +71,7 @@
 
   gl.clearColor(0,0,0,1)
   gl.clear(gl.COLOR_BUFFER_BIT)
-  gl.drawArrays(gl.POINTS, 0, 3)
+  gl.drawArrays(gl.TRIANGLES, 0, 4)
 
 
   function initShader(gl, vsSource, fsSource) {
